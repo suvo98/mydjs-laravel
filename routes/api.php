@@ -19,10 +19,6 @@ Route::group(['middleware' => 'jwt.auth'], function () {
     Route::get('user', 'UserController@getAuthUser');
 
 });
-Route::get('course-list', 'CourseController@courseList');
-Route::get('program-list', 'CourseController@programList');
-Route::get('semester-list', 'CourseController@semesterList');
-Route::get('batch-list', 'CourseController@batchList');
-Route::get('schedule-list', 'CourseController@ScheduleList');
+
 
 
