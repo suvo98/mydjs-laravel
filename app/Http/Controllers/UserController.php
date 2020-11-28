@@ -15,9 +15,17 @@ class UserController extends Controller
 //        $this->middleware('auth:api', ['except' => ['login']]);
 //    }
 
+    public function UploadFile(Request $request)
+    {
+        $file = $request->file('file');
+        $destinationPath = 'uploads';
+        $file->move($destinationPath,$file->getClientOriginalName());
+        return response()->json(['success' => 'success'], 200);
+    }
+
     public function ClassListByBatch($student_id) {
         $sql="SELECT DISTINCT aca_class_schedule_master.ProgramID, aca_program.Name ProgramName,aca_semester.Name SemesterName, aca_batch.Name BatchName, aca_class_schedule_master.SemesterID, aca_class_schedule_details.DayID, aca_class_schedule_details.TimeID, aca_class_schedule_master.CourseID,
-        aca_class_schedule_details.RoomID, aca_time_slot.Name TimeName, aca_days.Day, aca_room.Name RoomName, aca_room.ClassCapacity, aca_course.Code, aca_course.Name CourseName
+        aca_class_schedule_details.RoomID, aca_time_slot.Name TimeName, aca_days.Day, aca_room.Name RoomName, aca_room.ClassCapacity, aca_course.Code, aca_course.Name CourseName, aca_batch.ID BatchID
         FROM aca_class_schedule_master
         INNER  JOIN aca_class_schedule_details on aca_class_schedule_master.ID=aca_class_schedule_details.ClassScheduID
         INNER JOIN aca_time_slot ON aca_time_slot.ID=aca_class_schedule_details.TimeID
@@ -42,10 +50,18 @@ class UserController extends Controller
     public function CourserMaterialByCourseID($CourseID)
     {
 
-        $sql="SELECT aca_course_material.Name, aca_course_material.FileName, aca_course_material.FileType FROM aca_course_material
+        $sql="SELECT aca_course_material.Name, aca_course_material.FileName FROM aca_course_material
 			  WHERE CourseID=$CourseID	";
 
-        return DB::select($sql);
+        $data = DB::select($sql);
+        $files = [];
+        foreach ($data as $key => $value) {
+            $files[$key]['FileType'] = pathinfo($value->FileName, PATHINFO_EXTENSION);
+            $files[$key]['FileName'] = $value->FileName;
+            $files[$key]['Name'] = $value->Name;
+        }
+
+        return $files;
 
     }
     public function CourserByClassRoll($class_roll)
@@ -61,7 +77,7 @@ class UserController extends Controller
     }
     public function dashboardCount($student_id)
     {
-        $date = date('Y-m-d', strtotime('-1 day', strtotime(date('Y-m-d'))));
+        $date = date('Y-m-d', strtotime('-2 day', strtotime(date('Y-m-d'))));
 
         $sql="SELECT aca_class_schedule_master.CourseID
       FROM aca_class_schedule_master
