@@ -15,6 +15,32 @@ class UserController extends Controller
 //        $this->middleware('auth:api', ['except' => ['login']]);
 //    }
 
+    public function GetAttendance(Request $request)
+    {
+//        return $request;
+        $FromDate = $request->input('from_date');
+        $ToDate = $request->input('to_date');
+        $CourseID = $request->input('course_id');
+        $StudentID = $request->input('student_id');
+        $SemesterID = $request->input('semester_id');
+        $where = "";
+        if ($CourseID != "") {
+            $where .= " and CourseID = $CourseID ";
+        }
+        if ($StudentID != "") {
+            $where .= " and StudentID = $StudentID ";
+        }
+        if ($SemesterID != "") {
+            $where .= " and SemesterID = $SemesterID ";
+        }
+
+        $sql = "SELECT aca_student_attendance.*
+		      FROM aca_student_attendance
+			  WHERE 1=1  $where 
+			  ORDER BY AttDay";
+
+        return DB::select($sql);
+    }
     public function UploadFile(Request $request)
     {
         $file = $request->file('file');
@@ -77,7 +103,8 @@ class UserController extends Controller
     }
     public function dashboardCount($student_id)
     {
-        $date = date('Y-m-d', strtotime('-2 day', strtotime(date('Y-m-d'))));
+//        $date = date('Y-m-d', strtotime('-2 day', strtotime(date('Y-m-d'))));
+        $date = date('Y-m-d');
 
         $sql="SELECT aca_class_schedule_master.CourseID
       FROM aca_class_schedule_master

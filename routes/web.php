@@ -26,6 +26,8 @@ Route::get('courser-class-roll/{class_roll}', 'UserController@CourserByClassRoll
 Route::get('material-course/{course_id}', 'UserController@CourserMaterialByCourseID')->name('material-course');
 Route::get('class-list-by-batch/{student_id}', 'UserController@ClassListByBatch')->name('class-list-by-batch');
 
+Route::post('get-attendance/', 'UserController@GetAttendance')->name('get-attendance');
+
 Route::post('upload-file', 'UserController@UploadFile')->name('upload-file');
 
 Route::post('login', 'UserController@login');
