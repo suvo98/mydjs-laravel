@@ -14,6 +14,63 @@ class UserController extends Controller
 //    {
 //        $this->middleware('auth:api', ['except' => ['login']]);
 //    }
+    public function GetAssignment(Request $request)
+    {
+        $StudentID = $request->input('student_id');
+
+        $sql="SELECT aca_assignment.*, aca_program.Name ProgramName, 
+aca_batch.Name BatchName
+          FROM aca_assignment
+          INNER JOIN aca_batch_running_semester ON aca_batch_running_semester.BatchID=aca_assignment.BatchID AND 
+          aca_batch_running_semester.SemesterID=aca_assignment.SemesterID
+          INNER JOIN aca_stu_basic ON aca_stu_basic.BatchID=aca_batch_running_semester.BatchID
+            INNER JOIN aca_program on aca_program.ID = aca_assignment.ProgramID
+            INNER JOIN aca_batch on aca_batch.ID = aca_assignment.BatchID
+          WHERE aca_stu_basic.ID=".$StudentID." and aca_assignment.SubmitDate>='".date('Y-m-d H:i:s')."'
+          ORDER BY aca_assignment.CourseID ";
+        return $assignment = DB::select($sql);
+    }
+
+    public function GetProfileInfo(Request $request)
+    {
+        $StudentID = $request->input('student_id');
+
+        $sql="SELECT aca_stu_basic.Name, aca_stu_basic.RegistrationNo, aca_stu_basic.ClassRoll, aca_stu_basic.ExamRoll, 
+        aca_stu_basic.Email, aca_stu_basic.DepartmentID, aca_stu_basic.ProgramID, aca_stu_basic.SessionID, aca_stu_basic.BatchID,
+        aca_department.Name  DepartmentName, aca_program.Name ProgramName, aca_session.Name SessionName,
+        aca_batch.Name BatchName
+        FROM aca_stu_basic 
+        INNER JOIN aca_department on aca_department.ID = aca_stu_basic.DepartmentID
+        INNER JOIN aca_program on aca_program.ID = aca_stu_basic.ProgramID
+        INNER JOIN aca_session on aca_session.ID = aca_stu_basic.SessionID
+        INNER JOIN aca_batch on aca_batch.ID = aca_stu_basic.BatchID
+        WHERE aca_stu_basic.ID = " . $StudentID;
+        return DB::select($sql);
+    }
+
+    public function GetExam(Request $request)
+    {
+        $CourseID = $request->input('course_id');
+        $StudentID = $request->input('student_id');
+        $SemesterID = $request->input('semester_id');
+
+        $sql="SELECT aca_exam.ID, aca_exam.Name, aca_exam.SemesterId, aca_semester.Name SemesterName, aca_exam.CourseId, 
+            aca_course.Name CourseName, aca_exam.QuestionType, aca_exam.SecurityType, DATE_FORMAT(aca_exam.ExamDateTime, '%d-%m-%Y') ExamDateTime, aca_exam.Marks, aca_exam.Duration, aca_exam.IsApprove 
+				   FROM aca_exam INNER JOIN aca_course on aca_course.ID=aca_exam.CourseID INNER JOIN
+				   aca_semester ON aca_semester.ID=aca_exam.SemesterID INNER JOIN
+				   aca_exam_allow_student on aca_exam.ID=aca_exam_allow_student.ExamID INNER JOIN
+				   aca_batch_running_semester ON aca_batch_running_semester.BatchID=aca_exam.BatchID AND aca_batch_running_semester.SemesterID=aca_exam.SemesterID
+				   WHERE aca_exam.IsApprove=1 and aca_exam_allow_student.Status=1 and aca_exam_allow_student.StudentID='".$StudentID."' 
+				   AND ADDTIME(ExamDateTime, Duration)>'".date('Y-m-d H:i:s')."' 
+				   AND aca_exam.CourseID IN (SELECT ID FROM aca_course
+                    WHERE SemesterID=aca_batch_running_semester.SemesterID AND IsOptional=0
+                    UNION ALL 
+                    SELECT CourseID FROM aca_student_optional_course
+                    WHERE SemesterID=aca_batch_running_semester.SemesterID AND BatchID=aca_batch_running_semester.BatchID AND StudentID=".$StudentID.")
+				   
+				   ORDER BY aca_exam.ExamDateTime ";
+        return DB::select($sql);
+    }
 
     public function GetAttendance(Request $request)
     {
