@@ -19,7 +19,7 @@ class UserController extends Controller
         $StudentID = $request->input('student_id');
 
         $sql="SELECT aca_assignment.*, aca_program.Name ProgramName, 
-aca_batch.Name BatchName
+          aca_batch.Name BatchName
           FROM aca_assignment
           INNER JOIN aca_batch_running_semester ON aca_batch_running_semester.BatchID=aca_assignment.BatchID AND 
           aca_batch_running_semester.SemesterID=aca_assignment.SemesterID
@@ -75,11 +75,31 @@ aca_batch.Name BatchName
     public function GetAttendance(Request $request)
     {
 //        return $request;
-        $FromDate = $request->input('from_date');
-        $ToDate = $request->input('to_date');
+        $FromDate = $request->input('fromDate');
+        $ToDate = $request->input('toDate');
         $CourseID = $request->input('course_id');
         $StudentID = $request->input('student_id');
         $SemesterID = $request->input('semester_id');
+        $month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        if ($FromDate != null) {
+            $FromArr = array_map('trim', explode('/', $FromDate));
+            $from_month_int = array_search($FromArr[1], $month,true)+1 >= 10  ? array_search($FromArr[1], $month,true)+1
+                : '0'.(array_search($FromArr[1], $month,true)+1);
+            $from_day_int = $FromArr[0] >= 10  ? $FromArr[0]
+                : '0'.($FromArr[0]);
+            $FromDate = $FromArr[2] . '-' .  $from_month_int  . '-' . $from_day_int;
+        }
+        if ($ToDate != null) {
+            $ToArr = array_map('trim', explode('/', $ToDate));
+            $to_month_int = array_search($ToArr[1], $month,true)+1 >= 10  ? array_search($ToArr[1], $month,true)+1
+                : '0'.(array_search($ToArr[1], $month,true)+1);
+            $to_day_int = $ToArr[0] >= 10  ? $ToArr[0]
+                : '0'.($ToArr[0]);
+            $ToDate = $ToArr[2] . '-' .  $to_month_int  . '-' . $to_day_int;
+        }
+
+
         $where = "";
         if ($CourseID != "") {
             $where .= " and CourseID = $CourseID ";
@@ -89,6 +109,10 @@ aca_batch.Name BatchName
         }
         if ($SemesterID != "") {
             $where .= " and SemesterID = $SemesterID ";
+        }
+
+        if ($FromDate != null && $ToDate != null) {
+            $where .= " AND AttDay BETWEEN '$FromDate' AND '$ToDate' ";
         }
 
         $sql = "SELECT aca_student_attendance.*
