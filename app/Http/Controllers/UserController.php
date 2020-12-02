@@ -244,7 +244,7 @@ class UserController extends Controller
                 if ($res->UserType == 'Student') {
                     $student = DB::table('aca_stu_basic')
                         ->select('ID', 'Name', 'ApplicationNo', 'RegistrationNo', 'ClassRoll', 'ExamRoll')
-                        ->where('ClassRoll', $res->EmployeeID)->first();
+                        ->where('RegistrationNo', $res->EmployeeID)->first();
 
                     return [
                         'StudentID' => $student->ID,
