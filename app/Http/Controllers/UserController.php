@@ -245,16 +245,23 @@ class UserController extends Controller
                     $student = DB::table('aca_stu_basic')
                         ->select('ID', 'Name', 'ApplicationNo', 'RegistrationNo', 'ClassRoll', 'ExamRoll')
                         ->where('RegistrationNo', $res->EmployeeID)->first();
+                    if ($student) {
+                        return [
+                            'StudentID' => $student->ID,
+                            'StudentName' => $student->Name,
+                            'ClassRoll' => $student->ClassRoll,
+                            'RegistrationNo' => $student->RegistrationNo,
+                            'UserName' => $res->UserName,
+                            'UserType' => $res->UserType,
+                            'EmployeeID' => $res->EmployeeID,
+                        ];
+                    } else {
+                        return response()->json([
+                            'label' => 'Invalid User!',
+                            'error' => 'Username or password is incorrect.',
+                        ], 404);
+                    }
 
-                    return [
-                        'StudentID' => $student->ID,
-                        'StudentName' => $student->Name,
-                        'ClassRoll' => $student->ClassRoll,
-                        'RegistrationNo' => $student->RegistrationNo,
-                        'UserName' => $res->UserName,
-                        'UserType' => $res->UserType,
-                        'EmployeeID' => $res->EmployeeID,
-                    ];
                 } else {
                     $student = DB::table('hrm_employee')
                         ->select('ID', 'Name', 'EmployeeNo')
