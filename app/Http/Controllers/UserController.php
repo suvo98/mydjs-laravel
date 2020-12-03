@@ -16,6 +16,60 @@ class UserController extends Controller
 //    }
 
 
+    public function GetSaveProfile(Request $request)
+    {
+        $data = DB::table('aca_stu_details')
+            ->where('StudentID', $request->input('StudentID'))
+            ->first();
+        return [
+            'data' => $data
+        ];
+    }
+
+    public function saveProfile(Request $request)
+    {
+        $data = DB::table('aca_stu_details')
+            ->select('id')
+            ->where('StudentID', $request->input('StudentID'))
+            ->first();
+        $month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $FromDate = $request->input('DOB');
+        if ($FromDate != null) {
+            $FromArr = array_map('trim', explode('/', $FromDate));
+            $from_month_int = array_search($FromArr[1], $month,true)+1 >= 10  ? array_search($FromArr[1], $month,true)+1
+                : '0'.(array_search($FromArr[1], $month,true)+1);
+            $from_day_int = $FromArr[0] >= 10  ? $FromArr[0]
+                : '0'.($FromArr[0]);
+            $FromDate = $FromArr[2] . '-' .  $from_month_int  . '-' . $from_day_int;
+        }
+
+
+        if ($data) {
+            DB::table('aca_stu_details')
+                ->where('StudentID', $request->input('StudentID'))
+                ->update([
+                'StudentID' => $request->input('StudentID'),
+                'FatherName' => $request->input('FatherName'),
+                'MotherName' => $request->input('MotherName'),
+                'PresentAddress' => $request->input('PresentAddress'),
+                'PermanetAddress' => $request->input('PermanetAddress'),
+                'DOB' => $FromDate,
+                'ContactNo' => $request->input('ContactNo'),
+            ]);
+        } else {
+            DB::table('aca_stu_details')->insert([
+                'StudentID' => $request->input('StudentID'),
+                'FatherName' => $request->input('FatherName'),
+                'MotherName' => $request->input('MotherName'),
+                'PresentAddress' => $request->input('PresentAddress'),
+                'PermanetAddress' => $request->input('PermanetAddress'),
+                'DOB' => $FromDate,
+                'ContactNo' => $request->input('ContactNo'),
+            ]);
+        }
+
+    }
+
     public function UserLatLongSave(Request $request)
     {
         $studentID = $request->input('student_id');

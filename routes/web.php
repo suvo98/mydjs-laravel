@@ -32,6 +32,8 @@ Route::post('get-attendance/', 'UserController@GetAttendance')->name('get-attend
 Route::post('get-exam/', 'UserController@GetExam')->name('get-exam');
 Route::post('get-profile/', 'UserController@GetProfileInfo')->name('get-profile');
 Route::post('get-assignment/', 'UserController@GetAssignment')->name('get-assignment');
+Route::post('save-profile/', 'UserController@saveProfile')->name('save-profile');
+Route::post('get-save-profile/', 'UserController@GetSaveProfile')->name('get-save-profile');
 
 Route::post('upload-file', 'UserController@UploadFile')->name('upload-file');
 
