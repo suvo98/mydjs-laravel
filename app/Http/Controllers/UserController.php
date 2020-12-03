@@ -147,7 +147,7 @@ class UserController extends Controller
     public function UploadFile(Request $request)
     {
         $file = $request->file('file');
-        $destinationPath = '/../gui/asssignmentsubmit';
+        $destinationPath = '/../xampp/htdocs/gui/asssignmentsubmit';
         $file->move($destinationPath,$file->getClientOriginalName());
         return response()->json(['success' => 'success'], 200);
     }
