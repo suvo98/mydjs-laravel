@@ -147,8 +147,8 @@ class UserController extends Controller
     public function UploadFile(Request $request)
     {
         $file = $request->file('file');
-//        $destinationPath = '/../xampp/htdocs/gui/asssignmentsubmit';
-        $destinationPath = '/uploads';
+        $destinationPath = '/../xampp/htdocs/gui/asssignmentsubmit';
+//        $destinationPath = '/uploads';
 
         $assignment = DB::table('aca_assignment')
             ->select('SemesterID', 'CourseID')
