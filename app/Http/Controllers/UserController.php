@@ -148,7 +148,21 @@ class UserController extends Controller
     {
         $file = $request->file('file');
         $destinationPath = '/../xampp/htdocs/gui/asssignmentsubmit';
-        $file->move($destinationPath,$file->getClientOriginalName());
+
+        $assignment = DB::table('aca_assignment')
+            ->select('SemesterID', 'CourseID')
+            ->where('id', $request->input('assignment_id'))->first();
+        $file_name = time() . '_' . $file->getClientOriginalName();
+        DB::table('aca_assignment_submit')->insert([
+            'SemesterID' => $assignment->SemesterID,
+            'CourseID' => $assignment->CourseID,
+            'AssignmentID' => $request->input('assignment_id'),
+            'StudentID' => $request->input('student_id'),
+            'SubmitDate' => date('Y-m-d'),
+            'FileName' => $file_name
+        ]);
+
+        $file->move($destinationPath, $file_name);
         return response()->json(['success' => 'success'], 200);
     }
 
