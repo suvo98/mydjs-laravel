@@ -154,19 +154,33 @@ class UserController extends Controller
             ->select('SemesterID', 'CourseID')
             ->where('id', $request->input('assignment_id'))->first();
 
-        $file_name = time() . '_' . $file->getClientOriginalName();
+        $assignment_submit = DB::table('aca_assignment_submit')
+            ->select('ID')
+            ->where('AssignmentID', $request->input('assignment_id'))
+            ->where('StudentID', $request->input('student_id'))
+            ->first();
 
-        DB::table('aca_assignment_submit')->insert([
-            'SemesterID' => $assignment->SemesterID,
-            'CourseID' => $assignment->CourseID,
-            'AssignmentID' => $request->input('assignment_id'),
-            'StudentID' => $request->input('student_id'),
-            'SubmitDate' => date('Y-m-d'),
-            'FileName' => $file_name
-        ]);
+        if ($assignment_submit) {
+            return response()->json([
+                'label' => 'Validation',
+                'error' => 'Assignment Already Submitted',
+            ], 404);
+        } else {
+            $file_name = time() . '_' . $file->getClientOriginalName();
 
-        $file->move($destinationPath, $file_name);
-        return response()->json(['success' => 'success'], 200);
+            DB::table('aca_assignment_submit')->insert([
+                'SemesterID' => $assignment->SemesterID,
+                'CourseID' => $assignment->CourseID,
+                'AssignmentID' => $request->input('assignment_id'),
+                'StudentID' => $request->input('student_id'),
+                'SubmitDate' => date('Y-m-d'),
+                'FileName' => $file_name
+            ]);
+
+            $file->move($destinationPath, $file_name);
+            return response()->json(['success' => 'success'], 200);
+        }
+
     }
 
     public function ClassListByBatchPost($student_id, Request $request) {
