@@ -14,6 +14,28 @@ class UserController extends Controller
 //    {
 //        $this->middleware('auth:api', ['except' => ['login']]);
 //    }
+
+
+    public function UserLatLongSave(Request $request)
+    {
+        $studentID = $request->input('student_id');
+        $latitude = $request->input('latitude');
+        $longitude = $request->input('longitude');
+
+        $value=DB::table('sec_user_latlong')->where('StudentID', $studentID)->get();
+
+        if($value->count() == 0){
+            DB::table('sec_user_latlong')->insert([
+                'StudentID' => $studentID,
+                'Lat' => $latitude,
+                'Long' => $longitude,
+            ]);
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+
     public function GetAssignment(Request $request)
     {
         $StudentID = $request->input('student_id');
@@ -128,6 +150,32 @@ class UserController extends Controller
         $destinationPath = 'uploads';
         $file->move($destinationPath,$file->getClientOriginalName());
         return response()->json(['success' => 'success'], 200);
+    }
+
+    public function ClassListByBatchPost($student_id, Request $request) {
+        $day = $request->input('day');
+        $sql="SELECT DISTINCT aca_class_schedule_master.ProgramID, aca_program.Name ProgramName,aca_semester.Name SemesterName, aca_batch.Name BatchName, aca_class_schedule_master.SemesterID, aca_class_schedule_details.DayID, aca_class_schedule_details.TimeID, aca_class_schedule_master.CourseID,
+        aca_class_schedule_details.RoomID, aca_time_slot.Name TimeName, aca_days.Day, aca_room.Name RoomName, aca_room.ClassCapacity, aca_course.Code, aca_course.Name CourseName, aca_batch.ID BatchID
+        FROM aca_class_schedule_master
+        INNER  JOIN aca_class_schedule_details on aca_class_schedule_master.ID=aca_class_schedule_details.ClassScheduID
+        INNER JOIN aca_time_slot ON aca_time_slot.ID=aca_class_schedule_details.TimeID
+        INNER JOIN aca_days ON aca_days.ID=aca_class_schedule_details.DayID
+        INNER JOIN aca_room ON aca_room.ID=aca_class_schedule_details.RoomID
+        INNER JOIN aca_course ON aca_course.ID=aca_class_schedule_master.CourseID
+        INNER JOIN aca_program ON aca_program.ID=aca_class_schedule_master.ProgramID
+        INNER JOIN aca_semester ON aca_semester.ID=aca_class_schedule_master.SemesterID
+        INNER JOIN aca_batch ON aca_batch.ID=aca_class_schedule_master.BatchID
+        INNER JOIN aca_batch_running_semester ON aca_batch_running_semester.BatchID=aca_class_schedule_master.BatchID AND aca_batch_running_semester.SemesterID=aca_class_schedule_master.SemesterID
+        INNER JOIN aca_stu_basic ON aca_stu_basic.BatchID=aca_batch_running_semester.BatchID
+        WHERE aca_stu_basic.ID=$student_id and aca_class_schedule_details.DayID = $day
+        AND aca_class_schedule_master.CourseID IN (SELECT ID FROM aca_course
+                                                                                                WHERE SemesterID=aca_batch_running_semester.SemesterID AND IsOptional=0
+                                                                                                UNION ALL 
+                                                                                                SELECT CourseID FROM `aca_student_optional_course`
+                                                                                                WHERE SemesterID=aca_batch_running_semester.SemesterID AND BatchID=aca_batch_running_semester.BatchID AND StudentID=1 )
+        ORDER BY aca_class_schedule_details.DayID,aca_time_slot.StartTime, aca_class_schedule_master.CourseID";
+
+        return DB::select($sql);
     }
 
     public function ClassListByBatch($student_id) {

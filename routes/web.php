@@ -25,6 +25,8 @@ Route::get('dashboard-count/{student_id}', 'UserController@dashboardCount')->nam
 Route::get('courser-class-roll/{class_roll}', 'UserController@CourserByClassRoll')->name('courser-class-roll');
 Route::get('material-course/{course_id}', 'UserController@CourserMaterialByCourseID')->name('material-course');
 Route::get('class-list-by-batch/{student_id}', 'UserController@ClassListByBatch')->name('class-list-by-batch');
+Route::post('class-list-by-batch/{student_id}', 'UserController@ClassListByBatchPost')->name('class-list-by-batch');
+Route::post('user-latlong-save', 'UserController@UserLatLongSave')->name('user-latlong-save');
 
 Route::post('get-attendance/', 'UserController@GetAttendance')->name('get-attendance');
 Route::post('get-exam/', 'UserController@GetExam')->name('get-exam');
