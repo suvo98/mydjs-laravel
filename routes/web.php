@@ -21,6 +21,8 @@ Route::get('semester-list', 'UserController@semesterList');
 Route::get('batch-list', 'UserController@batchList');
 Route::get('schedule-list', 'UserController@ScheduleList');
 
+Route::post('change-password', 'UserController@changePassword');
+
 Route::get('dashboard-count/{student_id}', 'UserController@dashboardCount')->name('dashboard-count');
 Route::get('courser-class-roll/{class_roll}', 'UserController@CourserByClassRoll')->name('courser-class-roll');
 Route::get('material-course/{course_id}', 'UserController@CourserMaterialByCourseID')->name('material-course');
@@ -34,6 +36,9 @@ Route::post('get-profile/', 'UserController@GetProfileInfo')->name('get-profile'
 Route::post('get-assignment/', 'UserController@GetAssignment')->name('get-assignment');
 Route::post('save-profile/', 'UserController@saveProfile')->name('save-profile');
 Route::post('get-save-profile/', 'UserController@GetSaveProfile')->name('get-save-profile');
+
+Route::get('get-notification/', 'UserController@getNotification')->name('get-notification');
+
 
 Route::post('upload-file', 'UserController@UploadFile')->name('upload-file');
 

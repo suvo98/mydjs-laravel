@@ -16,6 +16,101 @@ class UserController extends Controller
 //    }
 
 
+    public function getNotification() {
+        $payload = array(
+            'to' => 'ExponentPushToken[fWvHg6CvQCaOYXPAZeRd6B]',
+            'sound' => 'default',
+            'body' => 'hello',
+        );
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://exp.host/--/api/v2/push/send",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => array(
+                "Accept: application/json",
+                "Accept-Encoding: gzip, deflate",
+                "Content-Type: application/json",
+                "cache-control: no-cache",
+                "host: exp.host"
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+
+        curl_close($curl);
+
+        if ($err) {
+            echo "cURL Error #:" . $err;
+        } else {
+            echo $response;
+        }
+    }
+
+    public function changePassword(Request $request) {
+//        current_pass: CurrentPassword,
+//        new_pass: NewPassword,
+//        con_new_pass: ConfirmNewPassword,
+//        student_id: StudentId,
+        if ($request->input('current_pass') == "") {
+            return response()->json([
+                'label' => 'Validation',
+                'error' => 'Please Fill Current Password',
+            ], 404);
+        }
+        if ($request->input('new_pass') == "") {
+            return response()->json([
+                'label' => 'Validation',
+                'error' => 'Please Fill New Password',
+            ], 404);
+        }
+        if ($request->input('con_new_pass') == "") {
+            return response()->json([
+                'label' => 'Validation',
+                'error' => 'Please Fill Confirm New Password',
+            ], 404);
+        }
+
+        $employee_id = $request->input('employee_id');
+
+        $user = DB::table('sec_user')->where('EmployeeID', $employee_id)->first();
+        if ($user) {
+            if (md5($request->input('current_pass')) == $user->Password) {
+                if ($request->input('con_new_pass') == $request->input('new_pass')) {
+                    $res = DB::table('sec_user')->where('EmployeeID', $employee_id)
+                        ->update([
+                            'Password' => md5($request->input('new_pass'))
+                        ]);
+                    if ($res) {
+                        return response()->json([
+                            'label' => 'Message',
+                            'error' => 'Password Changed Successfully',
+                        ], 200);
+                    }
+                } else {
+                    return response()->json([
+                        'label' => 'Validation',
+                        'error' => 'New Password & Confirm Password Not Matched',
+                    ], 404);
+                }
+            } else {
+                return response()->json([
+                    'label' => 'Validation',
+                    'error' => 'Current Password Not Matched',
+                ], 404);
+            }
+
+        }
+    }
+
     public function GetSaveProfile(Request $request)
     {
         $data = DB::table('aca_stu_details')
@@ -130,7 +225,7 @@ class UserController extends Controller
         $StudentID = $request->input('student_id');
         $SemesterID = $request->input('semester_id');
 
-        $sql="SELECT aca_exam.ID, aca_exam.Name, aca_exam.SemesterId, aca_semester.Name SemesterName, aca_exam.CourseId, 
+        $sql="SELECT aca_exam.ID, aca_exam.Name, aca_exam.SemesterId, aca_semester.Name SemesterName, aca_exam.CourseId, aca_exam.FileName,
             aca_course.Name CourseName, aca_exam.QuestionType, aca_exam.SecurityType, DATE_FORMAT(aca_exam.ExamDateTime, '%d-%m-%Y') ExamDateTime, aca_exam.Marks, aca_exam.Duration, aca_exam.IsApprove 
 				   FROM aca_exam INNER JOIN aca_course on aca_course.ID=aca_exam.CourseID INNER JOIN
 				   aca_semester ON aca_semester.ID=aca_exam.SemesterID INNER JOIN
@@ -145,7 +240,25 @@ class UserController extends Controller
                     WHERE SemesterID=aca_batch_running_semester.SemesterID AND BatchID=aca_batch_running_semester.BatchID AND StudentID=".$StudentID.")
 				   
 				   ORDER BY aca_exam.ExamDateTime ";
-        return DB::select($sql);
+         $data = DB::select($sql);
+        $d_data = [];
+        foreach ($data as $key => $value) {
+            $count = count($d_data);
+            $d_data[$count]['ID'] = $value->ID;
+            $d_data[$count]['Name'] = $value->Name;
+            $d_data[$count]['CourseName'] = $value->CourseName;
+            $d_data[$count]['SemesterName'] = $value->SemesterName;
+            $d_data[$count]['SemesterID'] = $value->SemesterId;
+            $d_data[$count]['CourseID'] = $value->CourseId;
+            $d_data[$count]['FileName'] = $value->FileName;
+            $d_data[$count]['QuestionType'] = $value->QuestionType;
+            $d_data[$count]['SecurityType'] = $value->SecurityType;
+            $d_data[$count]['Marks'] = $value->Marks;
+            $d_data[$count]['Duration'] = $value->Duration;
+            $d_data[$count]['IsApprove'] = $value->IsApprove;
+            $d_data[$count]['FileType'] = pathinfo($value->FileName, PATHINFO_EXTENSION);
+        }
+        return $d_data;
     }
 
     public function GetAttendance(Request $request)
@@ -487,5 +600,45 @@ class UserController extends Controller
     public function guard()
     {
         return Auth::guard();
+    }
+
+    public function fcm($title, $message, $type, $notification_ids =array()){
+        define( 'API_ACCESS_KEY', 'AAAALUnh9FY:APA91bGo3Zw9DaW4H4JwfQ1dNrUdIBgvuh1_AxWXxvxtsw4j0vq38c8lA86_ZbIfs0a9BqfH7WjIKzZlre7zxEUNv1wjcxgtrE_8Wj9HGMwXZsPx4yf_lkk028HEQRDrkiukTT2-dg7_');
+        $registrationIds = $notification_ids;
+
+        $msg = array
+        (
+            'title'         => $title,
+            'message'       => $message,
+            'summaryText'   => 'The internet is built on cat pictures',
+            'click_action'  => 'FCM_PLUGIN_ACTIVITY',
+            'vibrate'       => 1,
+            'sound'         => 1,
+            'type'          => $type
+        );
+
+        $fields = array
+        (
+            'registration_ids'  => $registrationIds,
+            'data'              => $msg
+
+        );
+
+        $headers = array
+        (
+            'Authorization: key=' . API_ACCESS_KEY,
+            'Content-Type: application/json'
+        );
+
+        $ch = curl_init();
+        curl_setopt( $ch,CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send' );
+        curl_setopt( $ch,CURLOPT_POST, true );
+        curl_setopt( $ch,CURLOPT_HTTPHEADER, $headers );
+        curl_setopt( $ch,CURLOPT_RETURNTRANSFER, true );
+        curl_setopt( $ch,CURLOPT_SSL_VERIFYPEER, false );
+        curl_setopt( $ch,CURLOPT_POSTFIELDS, json_encode( $fields ) );
+        $result = curl_exec($ch );
+        curl_close( $ch );
+        echo $result;
     }
 }
