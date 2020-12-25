@@ -17,42 +17,35 @@ class UserController extends Controller
 
 
     public function getNotification() {
-        $payload = array(
-            'to' => 'ExponentPushToken[fWvHg6CvQCaOYXPAZeRd6B]',
-            'sound' => 'default',
-            'body' => 'hello',
-        );
-
-        $curl = curl_init();
-
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://exp.host/--/api/v2/push/send",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => json_encode($payload),
-            CURLOPT_HTTPHEADER => array(
-                "Accept: application/json",
-                "Accept-Encoding: gzip, deflate",
-                "Content-Type: application/json",
-                "cache-control: no-cache",
-                "host: exp.host"
-            ),
-        ));
-
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-
-        curl_close($curl);
-
-        if ($err) {
-            echo "cURL Error #:" . $err;
-        } else {
-            echo $response;
+        $url = "https://fcm.googleapis.com/fcm/send";
+        $db_token = DB::table('sec_notification')->get();
+        $tokens = [];
+        foreach ($db_token as $key => $value) {
+            $tokens[] = $value->token;
         }
+
+//        $token = "csRZLr0qR063hPsw0WPs0z:APA91bFLsRUcxYWDQ3oY5jUzChzVG_vBBQFrrG9bDJpAQ-Mgk9yf73IANaumOoqlMR5RLw2gu1H7jSUl-gqXsboihOZOhRFARzhvgfKvMV_f41QlLj5AqexQ7fPODbgoGWzgAf64M3Uu";
+        $serverKey = 'AAAA8wnPw2I:APA91bFR-ZMoeDH0XduqpirWVwzX2UAuVBcgYjplzST439TN37jChscUHd-prNxxd7xBw9iDPTU686dabEjGUUekasFZCnj4VO_lDUB0fYwEHRUFKcWz7CkHtFiRd3xH-mX4eTBL22MP';
+        $title = "Title";
+        $body = "Hi kabita i am here to see you";
+        $notification = array('title' => $title, 'text' => $body, 'sound' => 'default', 'badge' => '1');
+        $arrayToSend = array('registration_ids' => $tokens, 'notification' => $notification, 'priority' => 'high');
+        $json = json_encode($arrayToSend);
+        $headers = array();
+        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'Authorization: key=' . $serverKey;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+//        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+        $response = curl_exec($ch);
+        curl_close($ch);
     }
 
     public function changePassword(Request $request) {
@@ -165,24 +158,50 @@ class UserController extends Controller
 
     }
 
+    public function SaveNotificationToken(Request $request)
+    {
+        $studentID = $request->input('student_id');
+        $token = $request->input('token');
+
+        $value = DB::table('sec_notification')->where('student_id', $studentID)->get();
+        if (count($value) > 0) {
+            DB::table('sec_notification')
+                ->where('student_id', $studentID)
+                ->update([
+                'student_id' => $studentID,
+                'token' => $token,
+            ]);
+        } else {
+            DB::table('sec_notification')->insert([
+                'student_id' => $studentID,
+                'token' => $token,
+            ]);
+        }
+
+        return 1;
+
+    }
+
     public function UserLatLongSave(Request $request)
     {
         $studentID = $request->input('student_id');
         $latitude = $request->input('latitude');
         $longitude = $request->input('longitude');
 
-        $value=DB::table('sec_user_latlong')->where('StudentID', $studentID)->get();
+         $value=DB::table('sec_user_latlong')->where('StudentID', $studentID)->get();
 
-        if($value->count() == 0){
-            DB::table('sec_user_latlong')->insert([
-                'StudentID' => $studentID,
-                'Lat' => $latitude,
-                'Long' => $longitude,
-            ]);
-            return 1;
-        }else{
-            return 0;
-        }
+        DB::table('sec_user_latlong')->insert([
+            'StudentID' => $studentID,
+            'Lat' => $latitude,
+            'Long' => $longitude,
+            'CreateDate' => date('Y-m-d'),
+        ]);
+        return 1;
+//        if(count($value) == 0){
+//
+//        }else{
+//            return 0;
+//        }
     }
 
     public function GetAssignment(Request $request)

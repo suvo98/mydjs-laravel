@@ -29,6 +29,7 @@ Route::get('material-course/{course_id}', 'UserController@CourserMaterialByCours
 Route::get('class-list-by-batch/{student_id}', 'UserController@ClassListByBatch')->name('class-list-by-batch');
 Route::post('class-list-by-batch/{student_id}', 'UserController@ClassListByBatchPost')->name('class-list-by-batch');
 Route::post('user-latlong-save', 'UserController@UserLatLongSave')->name('user-latlong-save');
+Route::post('save-notification-token', 'UserController@SaveNotificationToken')->name('save-notification-token');
 
 Route::post('get-attendance/', 'UserController@GetAttendance')->name('get-attendance');
 Route::post('get-exam/', 'UserController@GetExam')->name('get-exam');
