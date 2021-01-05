@@ -24,12 +24,18 @@ class UserController extends Controller
             $tokens[] = $value->token;
         }
 
-//        $token = "csRZLr0qR063hPsw0WPs0z:APA91bFLsRUcxYWDQ3oY5jUzChzVG_vBBQFrrG9bDJpAQ-Mgk9yf73IANaumOoqlMR5RLw2gu1H7jSUl-gqXsboihOZOhRFARzhvgfKvMV_f41QlLj5AqexQ7fPODbgoGWzgAf64M3Uu";
-        $serverKey = 'AAAA8wnPw2I:APA91bFR-ZMoeDH0XduqpirWVwzX2UAuVBcgYjplzST439TN37jChscUHd-prNxxd7xBw9iDPTU686dabEjGUUekasFZCnj4VO_lDUB0fYwEHRUFKcWz7CkHtFiRd3xH-mX4eTBL22MP';
+
+        $serverKey = env("server_Key");
         $title = "Title";
-        $body = "Hi kabita i am here to see you";
-        $notification = array('title' => $title, 'text' => $body, 'sound' => 'default', 'badge' => '1');
-        $arrayToSend = array('registration_ids' => $tokens, 'notification' => $notification, 'priority' => 'high');
+        $body = "Let do it";
+        $notification = array('title' => $title, 'text' => $body, 'sound' => 'default', 'badge' => '1', "icon" => "ic_launcher");
+        $arrayToSend = array(
+            'registration_ids' => $tokens,
+            'notification' => $notification,
+            "data" => [
+                'route' => 'assignment'
+            ],
+            'priority' => 'high');
         $json = json_encode($arrayToSend);
         $headers = array();
         $headers[] = 'Content-Type: application/json';
