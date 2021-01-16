@@ -26,8 +26,8 @@ class UserController extends Controller
 
 
         $serverKey = env("server_Key");
-        $title = "Title";
-        $body = "Let do it";
+        $title = "Greeting";
+        $body = "Thank You for Installing MyDJS. Stay Connect with Us";
         $notification = array('title' => $title, 'text' => $body, 'sound' => 'default', 'badge' => '1', "icon" => "ic_launcher");
         $arrayToSend = array(
             'registration_ids' => $tokens,
